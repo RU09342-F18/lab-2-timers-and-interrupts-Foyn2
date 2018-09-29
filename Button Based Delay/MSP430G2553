@@ -1,5 +1,6 @@
 
 #include <msp430.h>
+
 /**
 * The main.c file for the button blink on the MSP430G2553 board
 * Nolan Foy
@@ -7,116 +8,71 @@
 * Last updated on 9/28/18
 */
 
-
 int main(void)
-
-
 {
+	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
+	
+	   BCSCTL3 = LFXT1S_2; //Enables crystal
 
+	   P1DIR |= (BIT0|BIT6); //Sets Pins 1.0 and 1.6 to be output pins
+	   P1REN |= BIT3; //Enables Pin 1.3 (Button) to be either pull up/down
+	   P1OUT |= BIT3; //Sets Pin 1.3 (Button) to be a pull up resistor
+	   P1OUT |= (BIT0|BIT6); //Sets Pin 1.0 (green LED) and PIN 1.6 (red LED) to be on in the beginning
 
-   WDTCTL = WDTPW | WDTHOLD;   // Stop watchdog timer
 
+	   P1IE |= BIT3; //Enables interrupt on PIN 1.3 (Button)
+	   P1IES |= BIT3; //Enables high - to - low behavior on interrupt on Pin 1.3 (button)
+	   CCTL0 = CCIE; //Enables interrupts
+      
+	   CCR0 =  103;  //Sets Frequency to 10HZ
+      
+	   TACTL = TASSEL_1 + MC_1 + ID_3;// ACLK selected, Up-Count Enabled, Divider = 8
 
-   BCSCTL3 = LFXT1S_2; //Enables crystal
+	__enable_interrupt(); //Enables Interrupts
 
-   P1DIR |= (BIT0|BIT6); //Sets Pins 1.0 and 1.6 to be output pins
-   P1REN |= BIT3; //Sets Pin 1.3 (Button) to be pull up/down enabled
-   P1OUT |= BIT3; //Sets Pin 1.3 (Button) to be a pull up resistor
-   P1OUT |= (BIT0|BIT6); //Sets Pin 1.0 (green LED) and PIN 1.6 (red LED) to be on in the beginning
 
+	   while (1) //Infinite while loop
+	   {
 
-   P1IE |= BIT3; //Enables interrupt on PIN 1.3 (Button)
 
+	   }
 
-   P1IES |= BIT3; //Enables high - to - low behavior on interrupt on Pin 1.3 (BUTTON)
+	}
 
+	//
+	#pragma vector = TIMER0_A0_VECTOR //Timer Interrupt that is triggered when the clock counts up to CCR0 value
 
-   CCTL0 = CCIE; //Enables interrupts
 
+	   __interrupt void Timer_A ()
+	   {
+	       P1OUT ^= BIT0; //Toggles the red LED (1.0) via Exclusive OR
+	       P1OUT ^= BIT6; //Toggles the green LED (Pin 1.6) via Exclusive OR
 
-   CCR0 =  103;  //Set Frequency to 10HZ
+	   }
 
+	#pragma vector=PORT1_VECTOR //Port 1 Interrupt that is triggered when Pin 1.3 (BUTTON) changes from high to low
 
-   TACTL = TASSEL_1 + MC_1 + ID_3;// ACLK selected, Up-Count Enabled, Divider = 8
+	__interrupt void Port_1(void)
 
-__enable_interrupt(); //Enables Interrupts
+	{//Code happens when the button is initially pressed
+   
+	   if (P1IES & BIT3) // Sets a condition of If P1IES AND BIT3 (Button) are 1, then it will perform the code below
+	   {
 
+	       TACTL = TACLR; //Clears any former values that were stored in Timer A's register
+	       TACTL = TASSEL_1 + MC_2 + ID_3;  //Changes clock mode to Continuous mode
+	       P1IES &= ~BIT3; //Sets Port 1's edge detection to 0 (Low - to - High)
 
-   while (1) //Infinite while loop
+	   }
+	   else
+	   {
 
+	       CCR0 = TA0R; //Sets the value in CCR0 register to the value in Timer A's register
+	       TACTL = TASSEL_1 + MC_1 + ID_3;  //Reverts clock mode back to UP modet
+	       P1IES |= BIT3; //Sets Port 1's edge detection to 1 (High - to - Low)
 
-   {
+	   }
+	   P1IFG &= ~BIT3; //Resets the interrupt flag triggered
+      
+ }
 
-
-   }
-
-}
-
-
-//
-
-
-#pragma vector = TIMER0_A0_VECTOR //Timer Interrupt that is triggered when clock counts up to CCR0 value
-
-
-   __interrupt void Timer_A ()
-
-
-   {
-
-
-       P1OUT ^= 0X41; //Toggle Pin 1.0 and 1.6 (RED and GREEN LEDs)
-
-   }
-
-#pragma vector=PORT1_VECTOR //Port 1 Interrupt that is triggered when Pin 1.3 (BUTTON) changes from high to low
-
-
-__interrupt void Port_1(void)
-
-
-//This section of code is reached when the button is initially pressed
-
-
-{
-
-
-   if (P1IES & BIT3) //If P1IES AND BIT3 (Button) are 1, it will perform the following code.
-
-
-   {
-
-
-       TACTL = TACLR; //Clears any prexisting value stored in Timer A's register
-
-
-       TACTL = TASSEL_1 + MC_2 + ID_3;  //Changes clock mode to Continuous mode
-
-
-       P1IES &= ~BIT3; //Sets Port 1's edge select to 0 (Low - to - High)
-
-
-   }
-
-
-   else
-
-
-   {
-
-
-   CCR0 = TA0R; //Sets value in CCR0 register to the value in Timer A's register
-
-
-   TACTL = TASSEL_1 + MC_1 + ID_3;  //Reverts clock mode back to Up-Count mode
-
-
-   P1IES |= BIT3; //Sets Port 1's edge select to 1 (High - to - Low)
-
-
-   }
-
-
-   P1IFG &= ~BIT3; //Resets interrupt flag initially triggered
-
-}
