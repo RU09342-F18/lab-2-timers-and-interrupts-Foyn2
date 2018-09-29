@@ -1,0 +1,31 @@
+#include <msp430.h> 
+
+
+/**
+ * The main.c file for the Button Interrupt on the MSP430F5529 board
+ * Nolan Foy
+ * Created on 9/24/18
+ * Last updated 9/28/18
+ */
+int main(void)
+{
+	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
+
+    P4DIR = BIT7; // This line of code sets bit 7 (P4.7) as an output pin
+    P1REN = BIT1; // The Resistor Enable is determined by the button pin on the board, P1.1
+    P1OUT = BIT1; // initializes value of P1.3 while also setting the resistor as a pull up
+    P1IE |= BIT1; //Enables the interrupt on the button on pin 1.1
+    P1IFG &= ~BIT1; //Clears interrupt flag when the button is pressed
+
+        __enable_interrupt();
+}
+
+
+#pragma vector=PORT1_VECTOR
+
+
+__interrupt void Port_1(void) //Enables interrupt so it does not keep XORing the output when the button is pressed
+    {
+        P4OUT ^= BIT7; //Toggles LED connected to Pin 4.7
+        P1IFG &= ~BIT1; //Clears interrupt flag when the button is pressed
+    }
