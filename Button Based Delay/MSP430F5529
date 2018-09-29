@@ -1,190 +1,76 @@
 
 #include <msp430.h>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
-
-
-* main.c
-
-
-* The purpose of this code is to blink one LED (Pin 1.0) at a frequency based on the time held by the user.
-
-
-* The initial frequency is set to 10HZ and is determined by the time Button 1.1 is held down for.
-
-
-* This code is compatible with the MSP430F5529LP Board.
-
-
+* The main.c File for the Button Delay on the MSP430F5529 board
+* Nolan Foy
+* Created on 9/24/18
+* Last updated on 9/28/18
 */
 
-
 int main(void)
-
-
 {
+	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 
+	
+	   P1DIR |= BIT0; //Sets Pins 1.0 (RED LED) as an output
 
-   WDTCTL = WDTPW | WDTHOLD;   // Stops the watchdog timer
 
+	   P1REN |= BIT1; //Enables Pin 1.1 (S2 button) to be pull up/down enabled
+	   P1OUT |= BIT1; //Sets Pin 1.1 (S2 button) to a pull up resistor
+	   P1OUT |= BIT0; //Sets Pin 1.0 (red LED) to be on at the beginning
 
+	   P1IE |= BIT1; //Enables interrupt on Pin 1.1 (S2)
+	   P1IES |= BIT1; //Enables high - to - low behavior on interrupt on Pin 1.1 (S2)
 
+	   TA0CCTL0 = CCIE;  // CCR0 Interrupt Enabled
+	   TA0CCR0 =  103;  //Sets Frequency to 10HZ
+	   TA0CTL = TASSEL_1 + MC_1+ID_3; // ACLK is selected in Up-Mode with the Divider set to 4
 
+	__enable_interrupt(); //Enables Interrupts
 
+	   while (1) // A while loop that loops infinitely
+	   {
 
 
+	   }
 
+	}
 
+	#pragma vector = TIMER0_A0_VECTOR //Timer Interrupt that is triggered when clock counts up to CCR0 value
 
 
+	   __interrupt void Timer_A ()
 
+	   {
 
+	       P1OUT ^= BIT0; //Toggles the red LED (Pin 1.0) on and off via Exclusive OR
 
+	   }
 
+	#pragma vector=PORT1_VECTOR //Port 1 Interrupt that is triggered when the button is pressed (PIN 1.0) from high to low
 
+	__interrupt void Port_1(void)
 
-   P1DIR |= 0X01; //Sets Pins 1.0 (RED LED) as an output
 
+	{ //Code runs when the button is pressed
 
-   P1REN |= BIT1; //Sets Pin 1.1 (S2) to be pull up/down enabled
 
+	   if (P1IES & BIT1) //An if statement that checks to see if P1IES AND BIT1 are equal to 1. If they are, the code below runs
 
-   P1OUT |= BIT1; //Sets Pin 1.1 (S2) to pull up resistor
+	   {
+	       TA0CTL = TACLR; //Clears the existing value in the clock register
+	       TA0CTL = TASSEL_1 + MC_2 + ID_3;  //Clock is changed to Continuous mode but maintains ACLK and Divider 8
+	       P1IES &= ~BIT1; //Edge detection select is set to 0 (Low-to-High)
+	   }
+	   else
 
+	   {//This code runs when the button is not pressed, or when the button is released
 
-   P1OUT |= 0X01; //Sets Pin 1.0 (RED LED) to be ON to begin
+	       TA0CCR0 = TA0R; // The Value in CCR0 is replaced by the value in Timer A's register.
+	       TA0CTL = TASSEL_1 + MC_1 + ID_3;  //Reverts back to Up-Mode but maintains ACLK and Divider 8.
+	       P1IES |= BIT1; //Edge detection select is set to 1 (High-to-Low)
+	   }
 
+	   P1IFG &= ~BIT1; //Clears the interrupt flag
 
-   P1IE |= BIT1; //Enables interrupt on Pin 1.1 (S2)
-
-
-   P1IES |= BIT1; //Enables high - to - low behavior on interrupt on Pin 1.1 (S2)
-
-
-   TA0CCTL0 = CCIE;  // CCR0 Interrupt Enabled
-
-
-   TA0CCR0 =  103;  //Sets Frequency to 10HZ
-
-
-   TA0CTL = TASSEL_1 + MC_1+ID_3;          // ACLK selected, Up-Mode, Divider set to 4
-
-
-
-
-
-
-
-__enable_interrupt(); //Enables Interrupts
-
-
-   while (1) // Generates an infinite loop
-
-
-   {
-
-
-   }
-
-
-}
-
-
-
-
-
-
-
-#pragma vector = TIMER0_A0_VECTOR //Timer Interrupt that is triggered when clock counts up to CCR0 value
-
-
-   __interrupt void Timer_A ()
-
-
-   {
-
-
-       P1OUT ^= 0X01; //Toggles PIN 1.0 (RED LED) on/off
-
-
-
-
-
-
-
-   }
-
-
-
-
-
-
-
-#pragma vector=PORT1_VECTOR //Port 1 Interrupt that is triggered on button press (PIN 1.0) from high to low
-
-
-__interrupt void Port_1(void)
-
-
-{
-
-
-   //This section of code is reached when the button is initially pressed
-
-
-   if (P1IES & BIT1) //Checks to see if P1IES AND BIT1 are equal to 1.
-
-
-   {
-
-
-       TA0CTL = TACLR; //Clear existing value in clock's register
-
-
-       TA0CTL = TASSEL_1 + MC_2 + ID_3;  //Clock is changed to Continuous mode but maintains ACLK and Divider 8
-
-
-       P1IES &= ~BIT1; //Edge select is set to 0 (Low-to-High)
-
-
-   }
-
-
-   else
-
-
-   {
-
-
-       //This section is reached when the button is released
-
-
-       TA0CCR0 = TA0R; //Value in CCR0 is replaced by value in Timer A's register.
-
-
-   TA0CTL = TASSEL_1 + MC_1 + ID_3;  //Revert back to Up-Mode but maintains ACLK and Divider 8.
-
-
-   P1IES |= BIT1; //Edge select is set back to 1 (High-to-Low)
-
-
-   }
-
-
-   P1IFG &= ~BIT1; //Flag from initial interrupt is cleared
-
-
-}
+	}
