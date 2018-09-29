@@ -12,18 +12,16 @@ int main(void)
    
    P1DIR |= BIT0; //Sets Pins 1.0 to be an output pin
    P2DIR |= BIT0; //Sets Pins 2.0 to be an output pin
-   P1REN |= BIT1; //Sets Pin 1.1 (Button) to be pull up/down enabled
+   P1REN |= BIT1; //Enables Pin 1.1 (Button) to be pull up/down 
    P1OUT |= BIT1; //Sets Pin 1.1 (Button) to be a pull up resistor
-   P1OUT |= BIT0; //Sets Pin 1.0 (green LED) to be ON to begin (the output)
-   P2OUT |= BIT0; //Sets Pin 2.0 (red LED) to be ON to begin
+   P1OUT |= BIT0; //Sets Pin 1.0 (green LED) to be on in the beginning (output)
+   P2OUT |= BIT0; //Sets Pin 2.0 (red LED) to be on in the beginning (output)
    
    P1IE |= BIT1; //Enables interrupt on Pin 1.1 (Button)
    P1IES |= BIT1; //Enables high - to - low behavior on interrupt (Button press)
    TB0CCTL0 = CCIE;// CCR0 interrupt is enabled
    TB0CCR0 =  1024; //Sets the value in the CCR0 register
    TBCTL = TBSSEL_1 + MC_1 + ID_3;  // ACLK selected, Up-Count Enabled, Divider = 8
-
-
 
 __enable_interrupt(); //Enables the interrupts
    while (1) //A while loop that loops infinitely
@@ -36,12 +34,8 @@ __enable_interrupt(); //Enables the interrupts
        P1OUT ^= BIT0; //Toggles Pin 1.0 (GREEN LED) on and off via Exclusive OR
        P2OUT ^= BIT0; //Toggles Pin 2.0 (RED LED) on and off via Exclusive OR
 
-
-
    }
-
-
-
+   
 #pragma vector=PORT1_VECTOR //Port 1 Interrupt that is triggered when Pin 1.1 is set from high to low (Pressing the button)
 __interrupt void Port_1(void)
 {
