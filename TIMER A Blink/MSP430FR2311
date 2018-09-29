@@ -1,24 +1,32 @@
+/**
+* The main.c file for the Timer A Blink on the MSP430FR2311 board
+* Nolan Foy
+* Created on 9/24/18
+* Last updated on 9/28/18
+*/
 
 int main(void)
 {
    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
    PM5CTL0 &= ~LOCKLPM5; // Disable the GPIO power-on default high-impedance mode
-   P1DIR |= 0X01; //Sets Pins 1.0 (GREEN LED)  to be an output
-   P2DIR |= 0X01; //Sets Pins 2.0 (RED LED)  to be an output
+   
+   P1DIR |= BIT0; //Sets Pins 1.0 to be an output pin
+   P2DIR |= BIT0; //Sets Pins 2.0 to be an output pin
    P1REN |= BIT1; //Sets Pin 1.1 (Button) to be pull up/down enabled
-   P1OUT |= BIT1; //Sets Pin 1.1 (Button) to pull up resistor
-   P1OUT |= 0X01; //Sets Pin 1.0 (GREEN LED) to be ON to begin
-   P2OUT |= 0X01; //Sets Pin 2.0 (RED LED) to be ON to begin
+   P1OUT |= BIT1; //Sets Pin 1.1 (Button) to be a pull up resistor
+   P1OUT |= BIT0; //Sets Pin 1.0 (green LED) to be ON to begin (the output)
+   P2OUT |= BIT0; //Sets Pin 2.0 (red LED) to be ON to begin
+   
    P1IE |= BIT1; //Enables interrupt on Pin 1.1 (Button)
    P1IES |= BIT1; //Enables high - to - low behavior on interrupt (Button press)
-   TB0CCTL0 = CCIE;// CCR0 interrupt enabled
-   TB0CCR0 =  1024; //Sets value in the CCR0 register
+   TB0CCTL0 = CCIE;// CCR0 interrupt is enabled
+   TB0CCR0 =  1024; //Sets the value in the CCR0 register
    TBCTL = TBSSEL_1 + MC_1 + ID_3;  // ACLK selected, Up-Count Enabled, Divider = 8
 
 
 
-__enable_interrupt(); //Enables interrupts
-   while (1) //Infinite while loop
+__enable_interrupt(); //Enables the interrupts
+   while (1) //A while loop that loops infinitely
    {
    }
 }
