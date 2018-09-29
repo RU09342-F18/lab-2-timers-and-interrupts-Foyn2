@@ -1,8 +1,8 @@
 
-```c
 /**
  * main.c
  */
+   
 int main(void)
 {
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
@@ -25,3 +25,4 @@ __interrupt void Port_1(void) //Enables interrupt so it does not keep XORing the
 	    P1OUT ^= BIT0; //Toggles LED connected to Pin 1.0
 	    P1IFG &= ~BIT3; //Clears interrupt flag when the button is pressed
 	}
+ 
