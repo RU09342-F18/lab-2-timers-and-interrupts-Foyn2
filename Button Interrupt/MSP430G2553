@@ -1,6 +1,9 @@
 
 /**
- * main.c
+ * The main.c file for Button Interrupt on the MSP430G2553 board
+ * Nolan Foy
+ * Created on 9/24/18
+ * Last updated: 9/28/18
  */
    
 int main(void)
