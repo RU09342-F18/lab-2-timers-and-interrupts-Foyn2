@@ -1,12 +1,6 @@
 # Button Based Delay
-Now that you have begun to familiarize yourself with the TIMER modules, why don't we make an interesting change to our code from the last lab.
+Using the G2553 and F5529 boards, the button delay was implemented. The basic function of the button delay is to set the blinking frequency of the LED(s) on the board by holding down a button. The amount of time that the button is held down is the frequency at which the button would blink. Holding the button down for 3 seconds would cause a corresponding LED toggle delay of 3 seconds.
 
-## Task
-Setup your microcontroller to initially blink and LED at a rate of 10Hz upon restarting or powering up. Then utilizing one of the buttons on board, a user should be able to set the delay or blinking rate of the LED by holding down a button. The duration in which the button is depressed should then become the new rate at which the LED blinks. As previously stated, you most likely will want to take advantage of the fact that TIMER modules exist and see if you can let them do a bulk of the work for you.
+By setting CCR0  = 103, that set the CCR0 register to 10HZ. Once the internal clock reaches this number, the timer interrupt would be triggered. The LEDs begin to toggle on and off after this occurrence. The button interrupt occurs when the user presses the button, which is written in code as a conditional if statement. Basically, if the button is pressed, the frequency will change to however long the button is pressed for. Once the button is released,  the CCR0 register gets the duration of time that the button was pressed for, and the LED toggles on and off at this rate. The interrupt flag is cleared and prepared for the next time the button is pressed.
 
-### Extra Work
-## Reset Button
-What is a piece of electronics without a reset button? Instead of relying on resetting your processor using the built in reset circuitry, why not instead use another button to reset the rate back to 10Hz.
-
-## Button Based Hertz
-Most likely using two buttons, what if instead of making a delay loop based on the time, the user could instead enter a mode where the number of times they pressed the button would become the number in Hz of the blinking rate? How do you think you would implement that with just one button?
+The ports were once again different for the G2553 and the F5529, as well as the timer names (TACCTL instead of CCTL, TACCR0 instead of CCR0). 
